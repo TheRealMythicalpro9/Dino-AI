@@ -16,7 +16,8 @@ const dino = {
     jumpSpeed: 10,
     gravity: 0.5,
     isJumping: false,
-    velocityY: 0
+    velocityY: 0,
+    moveSpeed: 5
 };
 
 // Ground parameters
@@ -34,6 +35,9 @@ const obstacle = {
 
 // Game state
 let gameOver = false;
+
+// Key states
+const keys = {};
 
 // Draw functions
 function drawDino() {
@@ -70,6 +74,22 @@ function updateDino() {
             dino.isJumping = false;
             dino.velocityY = 0;
         }
+    }
+
+    // Move Dino left/right
+    if (keys['ArrowLeft']) {
+        dino.x -= dino.moveSpeed;
+    }
+    if (keys['ArrowRight']) {
+        dino.x += dino.moveSpeed;
+    }
+
+    // Prevent Dino from going out of bounds
+    if (dino.x < 0) {
+        dino.x = 0;
+    }
+    if (dino.x + dino.width > canvas.width) {
+        dino.x = canvas.width - dino.width;
     }
 }
 
@@ -110,10 +130,15 @@ function gameLoop() {
 
 // Control Dino
 document.addEventListener('keydown', (e) => {
+    keys[e.code] = true;
     if (e.code === 'Space' && !dino.isJumping && !gameOver) {
         dino.isJumping = true;
         dino.velocityY = dino.jumpSpeed;
     }
+});
+
+document.addEventListener('keyup', (e) => {
+    keys[e.code] = false;
 });
 
 // Start the game
