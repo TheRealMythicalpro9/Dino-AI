@@ -1,9 +1,10 @@
-// Basic setup for the Dino game
-const canvas = document.createElement('canvas');
+// Get the canvas element and set up the drawing context
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+// Set canvas size
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-document.body.appendChild(canvas);
 
 // Dino parameters
 const dino = {
@@ -21,6 +22,19 @@ const dino = {
 // Ground parameters
 const groundHeight = 50;
 
+// Obstacle parameters
+const obstacle = {
+    x: canvas.width,
+    y: canvas.height - groundHeight - 30,
+    width: 30,
+    height: 30,
+    color: 'red',
+    speed: 5
+};
+
+// Game state
+let gameOver = false;
+
 // Draw functions
 function drawDino() {
     ctx.fillStyle = dino.color;
@@ -32,12 +46,21 @@ function drawGround() {
     ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
 }
 
-// Game loop
-function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGround();
-    drawDino();
+function drawObstacle() {
+    ctx.fillStyle = obstacle.color;
+    ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+}
 
+// Update functions
+function updateObstacle() {
+    obstacle.x -= obstacle.speed;
+    if (obstacle.x < -obstacle.width) {
+        obstacle.x = canvas.width;
+        obstacle.y = canvas.height - groundHeight - 30;
+    }
+}
+
+function updateDino() {
     if (dino.isJumping) {
         dino.velocityY -= dino.gravity;
         dino.y -= dino.velocityY;
@@ -48,16 +71,50 @@ function gameLoop() {
             dino.velocityY = 0;
         }
     }
+}
+
+// Check for collisions
+function checkCollision() {
+    if (
+        dino.x + dino.width > obstacle.x &&
+        dino.x < obstacle.x + obstacle.width &&
+        dino.y + dino.height > obstacle.y
+    ) {
+        gameOver = true;
+    }
+}
+
+// Game loop
+function gameLoop() {
+    if (gameOver) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'black';
+        ctx.font = '48px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+        return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawGround();
+    drawDino();
+    drawObstacle();
+
+    updateObstacle();
+    updateDino();
+    checkCollision();
 
     requestAnimationFrame(gameLoop);
 }
 
-gameLoop();
-
 // Control Dino
 document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && !dino.isJumping) {
+    if (e.code === 'Space' && !dino.isJumping && !gameOver) {
         dino.isJumping = true;
         dino.velocityY = dino.jumpSpeed;
     }
 });
+
+// Start the game
+gameLoop();
